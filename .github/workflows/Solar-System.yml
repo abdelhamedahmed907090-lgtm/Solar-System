@@ -14,6 +14,7 @@ jobs:
   unit_Testing:
     runs-on: ${{matrix.os}}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest , macos-latest]
         node-version: [20,22,24]
@@ -38,10 +39,10 @@ jobs:
           run: npm test
         
         - name: Archive Test Result
-          if: failure() && (steps.nodejs-unit-testing-step.outcome == 'failure' || steps.nodejs-unit-testing-step.outcome == 'success')
+          if: always() 
           uses: actions/upload-artifact@v4
           with:
-            name: mocha-test-result-${{matrix.os}}
+            name: mocha-test-result-${{ matrix.os }}-node-${{ matrix.node-version }}
             path: test-result.xml  # name of the file in the root directory    
 
   CodeCoverage:
