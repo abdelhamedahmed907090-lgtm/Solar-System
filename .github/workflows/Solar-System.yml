@@ -12,7 +12,6 @@ env:
 
 jobs:
   unit_Testing:
-    continue-on-error: true
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
@@ -60,6 +59,7 @@ jobs:
           run: npm install
           
         - name: Code Coverage
+          continue-on-error: true
           run: npm run coverage
         
         - name: Archive Test Result
