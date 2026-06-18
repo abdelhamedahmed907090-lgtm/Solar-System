@@ -1,0 +1,71 @@
+name: SolarSystem Workflow
+on:
+ workflow_dispatch: 
+ push:
+    branches: 
+      - 'main'
+      - 'feature/**'
+env:
+    MONGO_URI: ${{vars.MONGO_URI}}
+    MONGO_USERNAME: ${{vars.MONGO_USER}}   
+    MONGO_PASSWORD: ${{secrets.MONGO_PASSWORD}}
+
+jobs:
+  unit_Testing:
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest , macos-latest]
+        node-version: [20,22,24]
+        exclude:
+         - os: macos-latest
+           node-version: 20
+
+    steps:
+        - name: Checkout The Repo
+          uses: actions/checkout@v4
+        
+        - name: Setup Node.js environment
+          uses: actions/setup-node@v5
+          with:
+            node-version: ${{matrix.node-version}}
+          
+        - name: Installing Dependecies
+          run: npm install
+          
+        - name: unit Testing
+          id: nodejs-unit-testing-step
+          run: npm test
+        
+        - name: Archive Test Result
+          if: always() 
+          uses: actions/upload-artifact@v4
+          with:
+            name: mocha-test-result-${{ matrix.os }}-node-${{ matrix.node-version }}
+            path: test-result.xml  # name of the file in the root directory    
+
+  CodeCoverage:
+    needs: unit_Testing
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout The Repo
+          uses: actions/checkout@v4
+        
+        - name: Setup Node.js environment
+          uses: actions/setup-node@v5
+          with:
+            node-version: 22
+          
+        - name: Installing Dependecies
+          run: npm install
+          
+        - name: Code Coverage
+          run: npm run coverage
+        
+        - name: Archive Test Result
+          uses: actions/upload-artifact@v4
+          with:
+            name: CodeCoverageResult
+            retention-days: 5
+            path: CoverageResults  # name of the file in the root directory   
